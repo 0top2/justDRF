@@ -16,11 +16,14 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = '__all__'
 
-
+class AuthorDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'avatar', 'bio']
 # 3. 文章核心序列化器
 class PostSerializer(serializers.ModelSerializer):
     # 嵌套显示：返回数据时，author 不再只是个 ID，而是一个包含头像用户名的字典
-    author = AuthorSerializer(read_only=True)
+    author = AuthorDetailSerializer(read_only=True)
 
     # 动态字段：比如前端只想显示摘要
     summary = serializers.SerializerMethodField()
@@ -32,3 +35,4 @@ class PostSerializer(serializers.ModelSerializer):
 
     def get_summary(self, obj):
         return obj.body[:50] + '...' if len(obj.body) > 50 else obj.body
+
