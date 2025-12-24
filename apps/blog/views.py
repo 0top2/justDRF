@@ -21,17 +21,18 @@ class PostViewSet(viewsets.ModelViewSet):
     支持：增删改查、分页、搜索、筛选、排序
     """
     # 1. 优化查询：使用 select_related 解决 N+1 问题 (Author是外键)
-    queryset = Post.objects.select_related('author', 'category').filter(status='published')
+    # queryset = Post.objects.select_related('author', 'category').filter(status='published')
+    queryset = Post.objects.all()
     serializer_class = PostSerializer
 
     # 2. 权限控制
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
-
-    # 3. 搜索与筛选 (工业级标配)
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['category', 'author']  # 支持 ?category=1
-    search_fields = ['title', 'body']  # 支持 ?search=Python
-    ordering_fields = ['created_at', 'id']  # 支持 ?ordering=-created_at
+    # permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+    #
+    # # 3. 搜索与筛选 (工业级标配)
+    # filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    # filterset_fields = ['category', 'author']  # 支持 ?category=1
+    # search_fields = ['title', 'body']  # 支持 ?search=Python
+    # ordering_fields = ['created_at', 'id']  # 支持 ?ordering=-created_at
 
     # 4. 重写 perform_create：自动把当前登录用户设为作者
     def perform_create(self, serializer):

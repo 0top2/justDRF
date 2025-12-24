@@ -32,8 +32,8 @@ from apps.blog.views import PostViewSet, CategoryViewSet
 
 # 自动注册路由
 router = DefaultRouter()
-router.register(r'posts', PostViewSet, basename='post')
-router.register(r'categories', CategoryViewSet, basename='category')
+router.register(r'articles', PostViewSet, basename='对文章的操作')
+router.register(r'categories', CategoryViewSet, basename='对分类的操作')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
