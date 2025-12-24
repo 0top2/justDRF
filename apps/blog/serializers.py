@@ -24,13 +24,16 @@ class PostSerializer(serializers.ModelSerializer):
     # 嵌套显示：返回数据时，author 不再只是个 ID，而是一个包含头像用户名的字典
     author = AuthorSerializer(read_only=True)
     category = CategorySerializer(read_only=True)
-    tags = TagSerializer(many=True, read_only=True)
+    tags = TagSerializer(many=True, read_only=True)  #只从数据库里读数据
+    tags_ids = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True,
+                                                  write_only=True, required=False,
+                                                  source='tags')
     # 动态字段：比如前端只想显示摘要
     summary = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ['id', 'title', 'summary', 'body', 'author', 'tags', 'category', 'status', 'created_at']
+        fields = ['id', 'title', 'summary', 'body', 'author', 'tags','tags_ids', 'category', 'status', 'created_at']
         read_only_fields = ['author', 'created_at']  # 作者由后端自动指定，不允许前端传
 
     def get_summary(self, obj):

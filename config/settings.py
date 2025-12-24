@@ -140,26 +140,31 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REST_FRAMEWORK = {
-    # # 默认认证：JWT
-    # 'DEFAULT_AUTHENTICATION_CLASSES': (
-    #     'rest_framework_simplejwt.authentication.JWTAuthentication',
-    # ),
-    # # 默认权限：必须登录 (安全第一)
-    # 'DEFAULT_PERMISSION_CLASSES': [
-    #     'rest_framework.permissions.IsAuthenticated',
-    # ],
-    # # 默认文档
-    # 'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-    # # 默认分页
-    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    # 'PAGE_SIZE': 10,
-    # # 默认过滤引擎
-    # 'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    # 默认认证：JWT
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    # 默认权限：必须登录 (安全第一)
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    # 默认文档
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    # 默认分页
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+    # 默认过滤引擎
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60), # 访问令牌活60分钟
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),    # 刷新令牌活1天
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1), # 访问令牌活60分钟
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),    # 刷新令牌活1天
 }
 
 # 只要这一行还在，你以后想给用户加 "手机号"、"微信OpenID" 随便加
 AUTH_USER_MODEL = 'users.User'
+
+# {
+#     "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NzE5Mjc0NiwiaWF0IjoxNzY2NTg3OTQ2LCJqdGkiOiI0M2VhMDQ1NmQyM2Y0ZWRjOGM5MzdkNGZlZjUyZThhMCIsInVzZXJfaWQiOiIxIn0.lBc3Kd1reDcuQG7Xa4D0DRS8U1UKKL16IHWwhK2oLqg",
+#     "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY2Njc0MzQ2LCJpYXQiOjE3NjY1ODc5NDYsImp0aSI6IjEzYmJiODIwYWYzYTQ2YWU4NGIxOGZjOGEwODgyODlkIiwidXNlcl9pZCI6IjEifQ.Uvr8LOalZghrcUCKF1oR0hoiTI0TSLnl_QJiIAxmJe0"
+# }

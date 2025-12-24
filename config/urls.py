@@ -42,10 +42,16 @@ urlpatterns = [
     path('api/', include(router.urls)),
 
     # 2. JWT 认证接口 (你要的 TokenObtain)
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     # 3. 接口文档 (Swagger)
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]
+
+
+# {
+#     "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NjY1MTkzNywiaWF0IjoxNzY2NTY1NTM3LCJqdGkiOiJmZGNjYTNhMzZiMmE0N2E1OTljNDEyNzQ5ODA4OTcwYyIsInVzZXJfaWQiOiIxIn0.DzdQQ6JlV44CiLzutde5OgXfBWpm1-vtGH1Et5HLZGM",
+#     "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY2NTY5MTM3LCJpYXQiOjE3NjY1NjU1MzcsImp0aSI6IjAxM2NkZDk3ZjBmMjQ3YWY5NjQ4NDQ4MzZmMmVhNjNmIiwidXNlcl9pZCI6IjEifQ.3AAvZnZbOUbuzFYisR5j5HnUkvWlnUVMaATGgLozdZ8"
+# }
