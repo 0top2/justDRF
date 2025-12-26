@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.shortcuts import render
 
 # Create your views here.
@@ -24,7 +25,9 @@ class PostViewSet(viewsets.ModelViewSet):
     # queryset = Post.objects.select_related('author', 'category').filter(status='published')
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    ordering_fields = ['created_at', 'views']
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
     # 2. 权限控制
     # permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
     #
@@ -37,7 +40,11 @@ class PostViewSet(viewsets.ModelViewSet):
     # 4. 重写 perform_create：自动把当前登录用户设为作者
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated:
+            return Post.objects.filter(Q(author=user)|Q(status='published'))
+        return Post.objects.filter(status='published')
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()

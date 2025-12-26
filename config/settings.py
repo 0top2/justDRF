@@ -157,8 +157,8 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1), # 访问令牌活60分钟
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),    # 刷新令牌活1天
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=20), # 访问令牌活60分钟
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),    # 刷新令牌活1天
 }
 
 # 只要这一行还在，你以后想给用户加 "手机号"、"微信OpenID" 随便加

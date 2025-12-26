@@ -29,11 +29,13 @@ from rest_framework_simplejwt.views import (
 
 # 引入你的 views
 from apps.blog.views import PostViewSet, CategoryViewSet
+from apps.users.views import UserInfoViewSet
 
 # 自动注册路由
 router = DefaultRouter()
 router.register(r'articles', PostViewSet, basename='对文章的操作')
 router.register(r'categories', CategoryViewSet, basename='对分类的操作')
+router.register(r'users',UserInfoViewSet,basename='个人信息')
 
 urlpatterns = [
     path('admin/', admin.site.urls),

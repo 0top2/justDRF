@@ -34,7 +34,7 @@ class Post(models.Model):
     # 状态字段 (草稿/发布)，工业级项目必备
     STATUS_CHOICES = (('draft', '草稿'), ('published', '发布'))
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='published')
-
+    views = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
