@@ -10,38 +10,66 @@
         a { text-decoration: none; color: #007bff; cursor: pointer; }
 
         /* --- 导航栏 --- */
-        nav { background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        nav { background-color: #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 0.8rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         .logo { font-size: 1.5rem; font-weight: bold; color: #2c3e50; }
-        .nav-links button { margin-left: 10px; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
-        .btn-primary { background-color: #007bff; color: white; }
-        .btn-outline { background-color: transparent; border: 1px solid #007bff; color: #007bff; }
-        .btn-danger { background-color: #dc3545; color: white; }
+
+        /* --- 导航栏右侧 & 头像下拉菜单 --- */
+        .nav-right { display: flex; align-items: center; gap: 15px; }
+        .user-avatar-nav { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 2px solid #eee; transition: all 0.2s; }
+        .user-avatar-nav:hover { border-color: #007bff; }
+
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #fff;
+            min-width: 160px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            z-index: 1;
+            margin-top: 5px;
+        }
+        .dropdown-content a { color: #333; padding: 12px 16px; text-decoration: none; display: block; font-size: 0.9rem; transition: background 0.2s; }
+        .dropdown-content a:hover { background-color: #f1f1f1; color: #007bff; }
+        .show-dropdown .dropdown-content { display: block; }
 
         /* --- 容器布局 --- */
         .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
-        .page-section { display: none; } /* 默认隐藏所有页面 */
-        .active-section { display: block; animation: fadeIn 0.3s; } /* 只显示当前页面 */
+        .page-section { display: none; }
+        .active-section { display: block; animation: fadeIn 0.3s; }
+
+        /* --- 按钮样式 --- */
+        .btn-primary { background-color: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; width: 100%; }
+        .btn-outline { background-color: transparent; border: 1px solid #007bff; color: #007bff; padding: 8px 16px; border-radius: 4px; cursor: pointer; width: 100%; }
+        .btn-danger { background-color: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+
+        /* 这种小按钮不需要100%宽度 */
+        .btn-small { width: auto; }
 
         /* --- 文章列表卡片 --- */
         .post-card { background: white; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: transform 0.2s; }
         .post-card:hover { transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .post-meta { font-size: 0.85rem; color: #888; margin-bottom: 0.5rem; display: flex; justify-content: space-between; }
         .post-title { margin: 0.5rem 0; font-size: 1.5rem; color: #2c3e50; }
-        .post-summary { color: #666; line-height: 1.6; }
         .tags span { background: #e9ecef; color: #495057; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; margin-right: 5px; }
 
-        /* --- 文章详情页 --- */
-        .detail-header { margin-bottom: 2rem; border-bottom: 1px solid #eee; padding-bottom: 1rem; }
-        .detail-body { font-size: 1.1rem; line-height: 1.8; color: #2c3e50; white-space: pre-wrap; }
-        .action-buttons { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #eee; }
-
-        /* --- 表单样式 (登录/编辑器) --- */
+        /* --- 表单与个人中心 --- */
         .form-box { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 400px; margin: 4rem auto; }
-        .editor-box { background: white; padding: 2rem; border-radius: 8px; }
         .form-group { margin-bottom: 1rem; }
         .form-group label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
         .form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        textarea.form-control { height: 200px; resize: vertical; }
+        textarea.form-control { resize: vertical; min-height: 100px; }
+
+        .profile-header { text-align: center; margin-bottom: 2rem; }
+        .profile-avatar-large { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #eee; margin-bottom: 1rem; }
+
+        /* 分割线 */
+        .divider { display: flex; align-items: center; text-align: center; margin: 1.5rem 0; color: #aaa; font-size: 0.8rem; }
+        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #eee; }
+        .divider::before { margin-right: .5em; }
+        .divider::after { margin-left: .5em; }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
@@ -50,7 +78,7 @@
 
     <nav>
         <div class="logo"><a href="#" onclick="showHome()">🚀 JustDRF Blog</a></div>
-        <div class="nav-links" id="nav-auth">
+        <div class="nav-right" id="nav-auth">
             </div>
     </nav>
 
@@ -58,18 +86,25 @@
 
         <section id="login-view" class="page-section">
             <div class="form-box">
-                <h2 style="text-align: center;">登录</h2>
+                <h2 style="text-align: center; margin-bottom: 1.5rem;">欢迎回来</h2>
+
                 <div class="form-group">
                     <label>用户名</label>
-                    <input type="text" id="username" class="form-control" placeholder="admin">
+                    <input type="text" id="username" class="form-control" placeholder="请输入用户名">
                 </div>
                 <div class="form-group">
                     <label>密码</label>
-                    <input type="password" id="password" class="form-control" placeholder="******">
+                    <input type="password" id="password" class="form-control" placeholder="请输入密码">
                 </div>
-                <button onclick="handleLogin()" class="form-control btn-primary">进入博客</button>
-                <p style="text-align: center; margin-top: 1rem; color: #666; font-size: 0.9rem;">
-                    还没有账号？暂不支持注册，请联系管理员。
+
+                <button onclick="handleLogin()" class="btn-primary">登录</button>
+
+                <div class="divider">或者</div>
+
+                <button onclick="showHome()" class="btn-outline">我是游客，直接随便逛逛 →</button>
+
+                <p style="text-align: center; margin-top: 1.5rem; color: #999; font-size: 0.85rem;">
+                    * 游客只能阅读文章，无法发布或修改。
                 </p>
             </div>
         </section>
@@ -79,19 +114,16 @@
                 <h2>最新文章</h2>
                 <input type="text" id="search-input" placeholder="搜索文章..." class="form-control" style="width: 200px;" onchange="loadPosts(this.value)">
             </div>
-            <div id="posts-container">
-                <p>正在加载文章...</p>
-            </div>
+            <div id="posts-container"></div>
         </section>
 
         <section id="detail-view" class="page-section">
-            <button onclick="showHome()" class="btn-outline">← 返回列表</button>
-            <div id="article-content" style="margin-top: 1rem;">
-                </div>
+            <button onclick="showHome()" class="btn-outline btn-small">← 返回列表</button>
+            <div id="article-content" style="margin-top: 1rem;"></div>
         </section>
 
         <section id="editor-view" class="page-section">
-            <div class="editor-box">
+            <div class="form-box" style="max-width: 800px;">
                 <h2 id="editor-title">写新文章</h2>
                 <input type="hidden" id="edit-post-id">
                 <div class="form-group">
@@ -100,27 +132,67 @@
                 </div>
                 <div class="form-group">
                     <label>分类</label>
-                    <select id="post-category" class="form-control">
-                        </select>
+                    <select id="post-category" class="form-control"></select>
                 </div>
                 <div class="form-group">
-                    <label>标签 (多选, 按住Ctrl多选)</label>
-                    <select id="post-tags" class="form-control" multiple>
-                        </select>
+                    <label>标签 (按住Ctrl多选)</label>
+                    <select id="post-tags" class="form-control" multiple style="height: 100px;"></select>
                 </div>
                 <div class="form-group">
                     <label>正文</label>
-                    <textarea id="post-body" class="form-control"></textarea>
+                    <textarea id="post-body" class="form-control" style="height: 300px;"></textarea>
                 </div>
                 <div style="display: flex; gap: 10px;">
-                    <button onclick="submitPost()" class="btn-primary" style="flex: 1;">发布 / 保存</button>
+                    <button onclick="submitPost()" class="btn-primary">发布 / 保存</button>
                     <button onclick="showHome()" class="btn-outline">取消</button>
                 </div>
+            </div>
+        </section>
+
+        <section id="profile-view" class="page-section">
+            <button onclick="showHome()" class="btn-outline btn-small" style="margin-bottom: 1rem;">← 返回首页</button>
+
+            <div class="form-box">
+                <div class="profile-header">
+                    <img id="profile-avatar-preview" src="" alt="Avatar" class="profile-avatar-large">
+                    <h3 id="profile-username-display"></h3>
+                    <p style="color: #666; font-size: 0.9rem;">ID: <span id="profile-id-display"></span></p>
+                </div>
+
+                <div class="form-group">
+                    <label>头像 URL</label>
+                    <input type="text" id="profile-avatar-input" class="form-control" placeholder="https://..." oninput="updateAvatarPreview(this.value)">
+                </div>
+
+                <div class="form-group">
+                    <label>个人简介</label>
+                    <textarea id="profile-bio-input" class="form-control" placeholder="介绍一下你自己..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>邮箱</label>
+                    <input type="email" id="profile-email-input" class="form-control" placeholder="email@example.com">
+                </div>
+
+                <button onclick="updateProfile()" class="btn-primary">保存修改</button>
             </div>
         </section>
 
     </div>
 
     <script src="app.js"></script>
+    <script>
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-avatar-nav')) {
+                var dropdowns = document.getElementsByClassName("dropdown-content");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.parentElement.classList.contains('show-dropdown')) {
+                        openDropdown.parentElement.classList.remove('show-dropdown');
+                    }
+                }
+            }
+        }
+    </script>
 </body>
 </html>

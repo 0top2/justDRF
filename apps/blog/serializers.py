@@ -28,14 +28,22 @@ class PostSerializer(serializers.ModelSerializer):
     tags_ids = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True,
                                                   write_only=True, required=False,
                                                   source='tags')
+    is_like = serializers.SerializerMethodField()
+    like_count = serializers.SerializerMethodField()
     # 动态字段：比如前端只想显示摘要
     summary = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ['id', 'title', 'summary', 'body', 'author', 'tags','tags_ids', 'category', 'status', 'created_at','views']
-        read_only_fields = ['author', 'created_at','views']  # 作者由后端自动指定，不允许前端传
+        fields = ['like_count','is_like', 'title', 'summary', 'body', 'author', 'tags','tags_ids', 'category', 'status', 'created_at','views']
+        read_only_fields = ['author', 'created_at','views','is_like','like_count']  # 作者由后端自动指定，不允许前端传
 
     def get_summary(self, obj):
         return obj.body[:50] + '...' if len(obj.body) > 50 else obj.body
-
+    def get_is_like(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+        return obj.likes.filter(id=request.user.id).exists()
+    def get_like_count(self, obj):
+        return obj.likes.count()

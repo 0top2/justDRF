@@ -2,8 +2,9 @@ from django.db.models import Q
 from django.shortcuts import render
 
 # Create your views here.
-from rest_framework import viewsets, permissions, filters
+from rest_framework import viewsets, permissions, filters, status
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .models import Post, Category
@@ -53,6 +54,18 @@ class PostViewSet(viewsets.ModelViewSet):
         if user.is_authenticated:
             return Post.objects.filter(Q(author=user)|Q(status='published'))
         return Post.objects.filter(status='published')
+    @action(detail=True, methods=['POST'], permission_classes=[permissions.IsAuthenticated])
+    def like(self, request, pk=None):
+        post = self.get_object()
+        user = self.request.user
+        if post.likes.filter(id=user.id).exists():
+            post.likes.remove(request.user)
+            message="取消点赞"
+        else:
+            post.likes.add(request.user)
+            message = '点赞成功'
+        return Response({'message': message})
+
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()

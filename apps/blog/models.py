@@ -35,6 +35,7 @@ class Post(models.Model):
     STATUS_CHOICES = (('draft', '草稿'), ('published', '发布'))
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='published')
     views = models.IntegerField(default=0)
+    likes = models.ManyToManyField(User, related_name='liked_posts', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
