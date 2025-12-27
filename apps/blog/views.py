@@ -4,6 +4,8 @@ from django.shortcuts import render
 # Create your views here.
 from rest_framework import viewsets, permissions, filters
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.response import Response
+
 from .models import Post, Category
 from .serializers import PostSerializer, CategorySerializer
 
@@ -40,6 +42,12 @@ class PostViewSet(viewsets.ModelViewSet):
     # 4. 重写 perform_create：自动把当前登录用户设为作者
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.views += 1
+        instance.save()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
     def get_queryset(self):
         user = self.request.user
         if user.is_authenticated:

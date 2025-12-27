@@ -33,8 +33,8 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['id', 'title', 'summary', 'body', 'author', 'tags','tags_ids', 'category', 'status', 'created_at']
-        read_only_fields = ['author', 'created_at']  # 作者由后端自动指定，不允许前端传
+        fields = ['id', 'title', 'summary', 'body', 'author', 'tags','tags_ids', 'category', 'status', 'created_at','views']
+        read_only_fields = ['author', 'created_at','views']  # 作者由后端自动指定，不允许前端传
 
     def get_summary(self, obj):
         return obj.body[:50] + '...' if len(obj.body) > 50 else obj.body
