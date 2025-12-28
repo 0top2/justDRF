@@ -72,18 +72,8 @@ class CommentSerializer(serializers.ModelSerializer):
         return obj.likes.count()
 
 
-class PostDetailSerializer(serializers.ModelSerializer):
-    author = AuthorSerializer(read_only=True)
-    category = CategorySerializer(read_only=True)
-    tags = TagSerializer(many=True, read_only=True)  # 只从数据库里读数据
-    tags_ids = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True,
-                                                  write_only=True, required=False,
-                                                  source='tags')
+class PostDetailSerializer(PostSerializer):
     comments = CommentSerializer(many=True, read_only=True)
-    is_like = serializers.SerializerMethodField()
-    like_count = serializers.SerializerMethodField()
-    summary = serializers.SerializerMethodField()
 
     class Meta(PostSerializer.Meta):
-        model= Post
         fields = PostSerializer.Meta.fields + ['comments']
