@@ -7,8 +7,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from .models import Post, Category
-from .serializers import PostSerializer, CategorySerializer
+from .models import Post, Category, Comment
+from .serializers import PostSerializer, CategorySerializer, CommentSerializer, PostDetailSerializer
 
 
 # 自定义权限：只有作者能改，别人只能看 (对象级权限)
@@ -40,6 +40,11 @@ class PostViewSet(viewsets.ModelViewSet):
     # search_fields = ['title', 'body']  # 支持 ?search=Python
     # ordering_fields = ['created_at', 'id']  # 支持 ?ordering=-created_at
 
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return PostDetailSerializer
+        return PostSerializer
     # 4. 重写 perform_create：自动把当前登录用户设为作者
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -64,7 +69,9 @@ class PostViewSet(viewsets.ModelViewSet):
         else:
             post.likes.add(request.user)
             message = '点赞成功'
-        return Response({'message': message})
+        return Response({'message': message,
+                         'like_count': post.likes.count()}
+                        )
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -72,3 +79,11 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     # 分类随便谁都能看，但只有管理员能改
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)

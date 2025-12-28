@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from apps.users.models import User
-from .models import Post, Category, Tag
+from .models import Post, Category, Tag, Comment
 
 
 # 1. 简单的用户序列化器 (用于嵌套显示作者信息，防泄露密码)
@@ -35,8 +35,8 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['like_count','is_like', 'title', 'summary', 'body', 'author', 'tags','tags_ids', 'category', 'status', 'created_at','views']
-        read_only_fields = ['author', 'created_at','views','is_like','like_count']  # 作者由后端自动指定，不允许前端传
+        fields = ['like_count','is_like', 'id','title', 'summary', 'body', 'author', 'tags','tags_ids', 'category', 'status', 'created_at','views']
+        read_only_fields = ['id','author', 'created_at','views','is_like','like_count']  # 作者由后端自动指定，不允许前端传
 
     def get_summary(self, obj):
         return obj.body[:50] + '...' if len(obj.body) > 50 else obj.body
@@ -47,3 +47,43 @@ class PostSerializer(serializers.ModelSerializer):
         return obj.likes.filter(id=request.user.id).exists()
     def get_like_count(self, obj):
         return obj.likes.count()
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = AuthorSerializer(read_only=True)
+    reply_to = serializers.SerializerMethodField()
+    class Meta:
+        model = Comment
+        fields = ['id', 'body', 'post', 'author', 'created_at', 'parent', 'reply_to']
+        read_only_fields = ['id', 'author', 'created_at', 'reply_to']
+
+    def get_reply_to(self, obj):
+        if obj.parent:
+            return obj.parent.author.username
+        return None
+    def get_summary(self, obj):
+        return obj.body[:50] + '...' if len(obj.body) > 50 else obj.body
+    def get_is_like(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+        return obj.likes.filter(id=request.user.id).exists()
+    def get_like_count(self, obj):
+        return obj.likes.count()
+
+
+class PostDetailSerializer(serializers.ModelSerializer):
+    author = AuthorSerializer(read_only=True)
+    category = CategorySerializer(read_only=True)
+    tags = TagSerializer(many=True, read_only=True)  # 只从数据库里读数据
+    tags_ids = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True,
+                                                  write_only=True, required=False,
+                                                  source='tags')
+    comments = CommentSerializer(many=True, read_only=True)
+    is_like = serializers.SerializerMethodField()
+    like_count = serializers.SerializerMethodField()
+    summary = serializers.SerializerMethodField()
+
+    class Meta(PostSerializer.Meta):
+        model= Post
+        fields = PostSerializer.Meta.fields + ['comments']

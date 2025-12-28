@@ -16,6 +16,9 @@ class Category(models.Model):
         return self.name
 
 
+
+
+
 class Post(models.Model):
     """
     文章模型
@@ -38,6 +41,17 @@ class Post(models.Model):
     likes = models.ManyToManyField(User, related_name='liked_posts', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    #由于comment模型有post外键关联本模型,所以有一个透明的comments字段指向所有有关的comment对象
     def __str__(self):
         return self.title
+
+class Comment(models.Model):
+    body = models.TextField("评论内容")
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
+    parent = models.ForeignKey('self', null=True, blank=True, related_name='children', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-created_at']
+    def __str__(self):
+        return f"{self.author.username} -> {self.post.title}"
