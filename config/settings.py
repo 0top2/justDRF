@@ -93,7 +93,6 @@ DATABASES = {
     }
 }
 
-
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -164,6 +163,22 @@ SIMPLE_JWT = {
 # 只要这一行还在，你以后想给用户加 "手机号"、"微信OpenID" 随便加
 AUTH_USER_MODEL = 'users.User'
 CORS_ALLOW_ALL_ORIGINS = True
+
+
+
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',  # Redis 地址和数据库编号
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+REDIS_HOST = '127.0.0.1'
+REDIS_PORT = 6379
+REDIS_DB = 1  # 选择数据库（0——15）
 # {
 #     "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NzE5Mjc0NiwiaWF0IjoxNzY2NTg3OTQ2LCJqdGkiOiI0M2VhMDQ1NmQyM2Y0ZWRjOGM5MzdkNGZlZjUyZThhMCIsInVzZXJfaWQiOiIxIn0.lBc3Kd1reDcuQG7Xa4D0DRS8U1UKKL16IHWwhK2oLqg",
 #     "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY2Njc0MzQ2LCJpYXQiOjE3NjY1ODc5NDYsImp0aSI6IjEzYmJiODIwYWYzYTQ2YWU4NGIxOGZjOGEwODgyODlkIiwidXNlcl9pZCI6IjEifQ.Uvr8LOalZghrcUCKF1oR0hoiTI0TSLnl_QJiIAxmJe0"

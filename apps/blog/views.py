@@ -1,5 +1,5 @@
 from django.db.models import Q
-from django.shortcuts import render
+from utils.redis_pool import redis
 
 # Create your views here.
 from rest_framework import viewsets, permissions, filters, status
@@ -48,10 +48,16 @@ class PostViewSet(viewsets.ModelViewSet):
     # 4. 重写 perform_create：自动把当前登录用户设为作者
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-    def retrieve(self, request, *args, **kwargs):
+    def retrieve(self, request, pk=None):
         instance = self.get_object()
-        instance.views += 1
-        instance.save()
+        view_key = f"post:{pk}:view_count"
+        if not redis.exists(view_key):
+            redis.set(view_key, instance.views+1 , ex=86400)
+            instance.views = redis.get(view_key)
+        else:
+            new_view = redis.incr(view_key)
+            instance.views  = new_view
+        instance.save(update_fields=['views'])
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
     def get_queryset(self):
@@ -63,14 +69,27 @@ class PostViewSet(viewsets.ModelViewSet):
     def like(self, request, pk=None):
         post = self.get_object()
         user = self.request.user
+        count_key = f"post:{pk}:like_count"
         if post.likes.filter(id=user.id).exists():
             post.likes.remove(request.user)
+            action = '-'
             message="取消点赞"
         else:
             post.likes.add(request.user)
+            action = '+'
             message = '点赞成功'
+        if not redis.exists(count_key):
+            current_count = post.likes.count()
+            redis.set(count_key, current_count)
+        else:
+            if action == '+':
+                redis.incr(count_key)
+            elif action == '-':
+                redis.decr(count_key)
+        final_count = redis.get(count_key)
         return Response({'message': message,
-                         'like_count': post.likes.count()}
+                         'like_count': int(final_count)
+                         }
                         )
 
 
@@ -86,6 +105,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
 
     def perform_create(self, serializer):
+        print("\n\n=============== 我运行到了这里！===============\n\n")
         serializer.save(author=self.request.user)
         return Response({
             "message":"评论成功"
