@@ -1,3 +1,5 @@
+import json
+
 from django.db.models import Q
 from utils.redis_pool import redis
 
@@ -50,45 +52,75 @@ class PostViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
     def retrieve(self, request, pk=None):
         instance = self.get_object()
+        cache_key = f"post:detail:{pk}"
         view_key = f"post:{pk}:view_count"
+
+    #先处理浏览量 ----------------------------------------------------
         if not redis.exists(view_key):
             redis.set(view_key, instance.views+1 , ex=86400)
-            instance.views = redis.get(view_key)
+            current_views = redis.get(view_key)
         else:
-            new_view = redis.incr(view_key)
-            instance.views  = new_view
-        instance.save(update_fields=['views'])
+            current_views = redis.incr(view_key)
+    #-------------------------------------------------------------
+    #然后处理内容缓存的问题------------------------------------------
+        cache_data = redis.get(cache_key)
+        if cache_data:
+            try:
+                print("命中缓存")
+                data = json.loads(cache_data)
+                data['views'] = current_views
+                return  Response(data, status=status.HTTP_200_OK)
+            except Exception as e:
+                print("redis的json文件格式损坏,无法解析")
+        print("没有命中缓存,回源查询")
         serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+        data = serializer.data
+        redis.set(cache_key, json.dumps(data), ex=86400)
+        return Response(data, status=status.HTTP_200_OK)
+
+    def peform_update(self, serializer):
+        instance = serializer.save()
+        cache_key = f"post:detail:{instance.pk}"
+        redis.delete(cache_key)
+    def perform_destroy(self, instance):
+        pk = instance.id
+        instance.delete()
+        cache_key = f"post:detail:{pk}"
+        redis.delete(cache_key)
+        redis.delete(f"post:{pk}:view_count")
+
     def get_queryset(self):
         user = self.request.user
+        queryset = Post.objects.select_related('author','category').prefetch_related('tags').all()
         if user.is_authenticated:
-            return Post.objects.filter(Q(author=user)|Q(status='published'))
-        return Post.objects.filter(status='published')
+            return queryset.filter(Q(author=user)|Q(status='published'))
+        return queryset.filter(status='published')
     @action(detail=True, methods=['POST'], permission_classes=[permissions.IsAuthenticated])
     def like(self, request, pk=None):
         post = self.get_object()
         user = self.request.user
-        count_key = f"post:{pk}:like_count"
-        if post.likes.filter(id=user.id).exists():
+        like_key = f"post:{pk}:like_member"  #点赞作者名单
+    #先看有没有这个键位,如果没有就读一遍数据库,存放到redis
+        if not redis.exists(like_key):
+            user_ids = post.likes.values_list('id', flat=True)
+            if user_ids:
+                redis.sadd(like_key, *user_ids)
+            redis.expire(like_key, 86400)
+    #再去判断点赞/取消点赞逻辑,不管是哪一种都要进行双写单读
+        if redis.sismember(like_key, user.id):
             post.likes.remove(request.user)
+            redis.srem(like_key, user.id)
             action = '-'
             message="取消点赞"
         else:
             post.likes.add(request.user)
+            redis.sadd(like_key, user.id)
             action = '+'
             message = '点赞成功'
-        if not redis.exists(count_key):
-            current_count = post.likes.count()
-            redis.set(count_key, current_count)
-        else:
-            if action == '+':
-                redis.incr(count_key)
-            elif action == '-':
-                redis.decr(count_key)
-        final_count = redis.get(count_key)
+
+        final_count = redis.scard(like_key)
         return Response({'message': message,
-                         'like_count': int(final_count)
+                         'like_count': final_count
                          }
                         )
 
@@ -105,7 +137,6 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
 
     def perform_create(self, serializer):
-        print("\n\n=============== 我运行到了这里！===============\n\n")
         serializer.save(author=self.request.user)
         return Response({
             "message":"评论成功"

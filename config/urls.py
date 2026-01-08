@@ -17,7 +17,7 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path
-
+from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
@@ -58,3 +58,10 @@ urlpatterns = [
 #     "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NjY1MTkzNywiaWF0IjoxNzY2NTY1NTM3LCJqdGkiOiJmZGNjYTNhMzZiMmE0N2E1OTljNDEyNzQ5ODA4OTcwYyIsInVzZXJfaWQiOiIxIn0.DzdQQ6JlV44CiLzutde5OgXfBWpm1-vtGH1Et5HLZGM",
 #     "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY2NTY5MTM3LCJpYXQiOjE3NjY1NjU1MzcsImp0aSI6IjAxM2NkZDk3ZjBmMjQ3YWY5NjQ4NDQ4MzZmMmVhNjNmIiwidXNlcl9pZCI6IjEifQ.3AAvZnZbOUbuzFYisR5j5HnUkvWlnUVMaATGgLozdZ8"
 # }
+
+# <--- 【新增】加上这一段代码 --->
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns += [
+        path('__debug__/', include(debug_toolbar.urls)),
+    ]

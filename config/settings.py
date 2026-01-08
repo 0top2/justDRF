@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 # 第三方工业级组件
+    'debug_toolbar',
     'rest_framework',
     'rest_framework_simplejwt',  # JWT 登录
     'drf_spectacular',           # 自动文档
@@ -50,6 +51,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware', # 必须放在最前面
+    'debug_toolbar.middleware.DebugToolbarMiddleware',# <--- 【新增】加在这里，必须靠前！
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -183,3 +185,7 @@ REDIS_DB = 1  # 选择数据库（0——15）
 #     "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NzE5Mjc0NiwiaWF0IjoxNzY2NTg3OTQ2LCJqdGkiOiI0M2VhMDQ1NmQyM2Y0ZWRjOGM5MzdkNGZlZjUyZThhMCIsInVzZXJfaWQiOiIxIn0.lBc3Kd1reDcuQG7Xa4D0DRS8U1UKKL16IHWwhK2oLqg",
 #     "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY2Njc0MzQ2LCJpYXQiOjE3NjY1ODc5NDYsImp0aSI6IjEzYmJiODIwYWYzYTQ2YWU4NGIxOGZjOGEwODgyODlkIiwidXNlcl9pZCI6IjEifQ.Uvr8LOalZghrcUCKF1oR0hoiTI0TSLnl_QJiIAxmJe0"
 # }
+
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
