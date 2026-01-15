@@ -50,32 +50,61 @@ class PostViewSet(viewsets.ModelViewSet):
     # 4. 重写 perform_create：自动把当前登录用户设为作者
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-    def retrieve(self, request, pk=None):
-        instance = self.get_object()
+    def retrieve(self, request, pk=None,*args,**kwargs):
         cache_key = f"post:detail:{pk}"
         view_key = f"post:{pk}:view_count"
+        user = request.user
 
     #先处理浏览量 ----------------------------------------------------
         if not redis.exists(view_key):
-            redis.set(view_key, instance.views+1 , ex=86400)
-            current_views = redis.get(view_key)
+            # 极端情况：Redis 丢数据了，这里才需要被迫查库（只会发生 1 次）
+            # 为了代码简洁，这里可以直接给个初始值，或者回源查一次
+            try:
+                # 这里的查询是为了容错，虽有性能损耗但概率极低
+                view_data = Post.objects.values('views').get(pk=pk)
+                db_views = view_data['views']
+                redis.set(view_key, db_views + 1, ex=86400)
+                current_views = db_views + 1
+            except Post.DoesNotExist:
+                return Response(status=status.HTTP_404_NOT_FOUND)
         else:
             current_views = redis.incr(view_key)
     #-------------------------------------------------------------
     #然后处理内容缓存的问题------------------------------------------
         cache_data = redis.get(cache_key)
+        #只在redis里存储公共部分
         if cache_data:
-            try:
-                print("命中缓存")
-                data = json.loads(cache_data)
-                data['views'] = current_views
-                return  Response(data, status=status.HTTP_200_OK)
-            except Exception as e:
-                print("redis的json文件格式损坏,无法解析")
-        print("没有命中缓存,回源查询")
-        serializer = self.get_serializer(instance)
-        data = serializer.data
-        redis.set(cache_key, json.dumps(data), ex=86400)
+            print("命中缓存")
+            data = json.loads(cache_data)
+            if user.is_authenticated:
+                is_like = redis.sismember(f"post:{pk}:like_member", user.id)
+            else:
+                is_like = False
+            data["is_like"] = is_like
+        else:
+            instance = self.get_object()
+            print("没有命中缓存,回源查询")
+            serializer = self.get_serializer(instance)
+            data = serializer.data
+            if "is_like" in data:
+                data.pop("is_like")
+            redis.set(cache_key, json.dumps(data), ex=86400)
+            if user.is_authenticated:
+                data["is_like"] = instance.likes.filter(id=user.id).exists()
+            else:
+                data["is_like"] = False
+
+        # #不管redis有没有,都要去处理的私密数据
+        # if request.user.is_authenticated:
+        #     data["is_like"] = instance.likes.filter(id=request.user.id).exists()
+        # else:
+        #     is_like = False
+        data["views"] = current_views
+        if current_views % 10 == 0:
+            # 这里为了不影响响应速度，可以用 celery 异步，或者用简单的 update 语句
+            # 使用 update 语句极快，不会加载对象，也不会触发信号
+            Post.objects.filter(pk=pk).update(views=current_views)
+            print(f"💾 [MySQL] 浏览量已同步: {current_views}")
         return Response(data, status=status.HTTP_200_OK)
 
     def peform_update(self, serializer):
@@ -106,7 +135,7 @@ class PostViewSet(viewsets.ModelViewSet):
             if user_ids:
                 redis.sadd(like_key, *user_ids)
             redis.expire(like_key, 86400)
-    #再去判断点赞/取消点赞逻辑,不管是哪一种都要进行双写单读
+    #再去判断点赞/取消点赞逻辑
         if redis.sismember(like_key, user.id):
             post.likes.remove(request.user)
             redis.srem(like_key, user.id)
