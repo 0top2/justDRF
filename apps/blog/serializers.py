@@ -57,6 +57,15 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ['id', 'body', 'post', 'author', 'created_at', 'parent', 'reply_to']
         read_only_fields = ['id', 'author', 'created_at', 'reply_to']
 
+
+    def validate(self,attrs):
+        parent = attrs.get('parent')
+        post = attrs.get('post')
+
+        if parent and parent.post !=post:
+            return serializers.ValidationError("数据逻辑错误,不能跨文章回复评论")
+
+        return attrs
     def get_reply_to(self, obj):
         if obj.parent:
             return obj.parent.author.username

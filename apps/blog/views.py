@@ -1,5 +1,5 @@
 import json
-
+from rest_framework import serializers
 from django.db.models import Q
 from utils.redis_pool import redis
 
@@ -107,7 +107,7 @@ class PostViewSet(viewsets.ModelViewSet):
             print(f"💾 [MySQL] 浏览量已同步: {current_views}")
         return Response(data, status=status.HTTP_200_OK)
 
-    def peform_update(self, serializer):
+    def perform_update(self, serializer):
         instance = serializer.save()
         cache_key = f"post:detail:{instance.pk}"
         redis.delete(cache_key)
@@ -162,11 +162,10 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all()
+    queryset = Comment.objects.select_related('author', 'parent', 'parent__author').all()
     serializer_class = CommentSerializer
+
+
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-        return Response({
-            "message":"评论成功"
-        })
