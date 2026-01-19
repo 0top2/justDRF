@@ -91,7 +91,8 @@ class PostViewSet(viewsets.ModelViewSet):
             data = serializer.data
             if "is_like" in data:
                 data.pop("is_like")
-            redis.set(cache_key, json.dumps(data), ex=86400)
+            if instance.status == 'published':
+                redis.set(cache_key, json.dumps(data), ex=86400)
             if user.is_authenticated:
                 data["is_like"] = instance.likes.filter(id=user.id).exists()
             else:
@@ -136,6 +137,7 @@ class PostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         user = self.request.user
         like_key = f"post:{pk}:like_member"  #点赞作者名单
+        is_like = redis.sismember(like_key, user.id)
     #先看有没有这个键位,如果没有就读一遍数据库,存放到redis,把读操作放在事务外面
         if not redis.exists(like_key):
             user_ids = post.likes.values_list('id', flat=True)
@@ -143,7 +145,6 @@ class PostViewSet(viewsets.ModelViewSet):
                 redis.sadd(like_key, *user_ids)
             redis.expire(like_key, 86400)
         with transaction.atomic():
-            is_like = redis.sismember(like_key, user.id)
         #再去判断点赞/取消点赞逻辑
             if is_like:
                 post.likes.remove(request.user)
