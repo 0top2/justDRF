@@ -1,4 +1,6 @@
 import json
+
+from django.db import transaction
 from rest_framework import serializers
 from django.db.models import Q
 from utils.redis_pool import redis
@@ -49,7 +51,8 @@ class PostViewSet(viewsets.ModelViewSet):
         return PostSerializer
     # 4. 重写 perform_create：自动把当前登录用户设为作者
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        with transaction.atomic():
+            serializer.save(author=self.request.user)
     def retrieve(self, request, pk=None,*args,**kwargs):
         cache_key = f"post:detail:{pk}"
         view_key = f"post:{pk}:view_count"
@@ -108,15 +111,19 @@ class PostViewSet(viewsets.ModelViewSet):
         return Response(data, status=status.HTTP_200_OK)
 
     def perform_update(self, serializer):
-        instance = serializer.save()
-        cache_key = f"post:detail:{instance.pk}"
-        redis.delete(cache_key)
+        with transaction.atomic():
+            instance = serializer.save()
+            cache_key = f"post:detail:{instance.pk}"
+            transaction.on_commit(lambda : redis.delete(cache_key))
     def perform_destroy(self, instance):
         pk = instance.id
-        instance.delete()
-        cache_key = f"post:detail:{pk}"
-        redis.delete(cache_key)
-        redis.delete(f"post:{pk}:view_count")
+        with transaction.atomic():
+            instance.delete()
+            def clear_redis():
+                cache_key = f"post:detail:{pk}"
+                redis.delete(cache_key)
+                redis.delete(f"post:{pk}:view_count")
+            transaction.on_commit(clear_redis)
 
     def get_queryset(self):
         user = self.request.user
@@ -129,23 +136,27 @@ class PostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         user = self.request.user
         like_key = f"post:{pk}:like_member"  #点赞作者名单
-    #先看有没有这个键位,如果没有就读一遍数据库,存放到redis
+    #先看有没有这个键位,如果没有就读一遍数据库,存放到redis,把读操作放在事务外面
         if not redis.exists(like_key):
             user_ids = post.likes.values_list('id', flat=True)
             if user_ids:
                 redis.sadd(like_key, *user_ids)
             redis.expire(like_key, 86400)
-    #再去判断点赞/取消点赞逻辑
-        if redis.sismember(like_key, user.id):
-            post.likes.remove(request.user)
-            redis.srem(like_key, user.id)
-            action = '-'
-            message="取消点赞"
-        else:
-            post.likes.add(request.user)
-            redis.sadd(like_key, user.id)
-            action = '+'
-            message = '点赞成功'
+        with transaction.atomic():
+            is_like = redis.sismember(like_key, user.id)
+        #再去判断点赞/取消点赞逻辑
+            if is_like:
+                post.likes.remove(request.user)
+                def redis_remove():
+                    redis.srem(like_key, user.id)
+                message="取消点赞"
+                transaction.on_commit(redis_remove)
+            else:
+                post.likes.add(request.user)
+                def redis_add():
+                    redis.sadd(like_key, user.id)
+                message = '点赞成功'
+                transaction.on_commit(redis_add)
 
         final_count = redis.scard(like_key)
         return Response({'message': message,
@@ -168,4 +179,5 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        with transaction.atomic():
+            serializer.save(author=self.request.user)
