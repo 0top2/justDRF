@@ -75,8 +75,10 @@
             cursor: pointer; letter-spacing: -1px;
             display: flex; align-items: center; gap: 8px;
         }
-        .nav-links { display: flex; gap: 20px; display: none; }
-        @media(min-width: 768px) { .nav-links { display: flex; } }
+        .nav-links { display: flex; gap: 20px; }
+
+        /* 简单的响应式处理：小屏幕隐藏导航链接 */
+        @media(max-width: 768px) { .nav-links { display: none; } }
 
         .nav-item {
             color: var(--text-secondary); font-size: 0.95rem; font-weight: 500;
@@ -428,7 +430,14 @@
     </main>
 
     <script>
-        const API_BASE = 'http://127.0.0.1:8000/api';
+        // --- 核心修改 1：动态判断 API 地址 ---
+        // 这样在本地开发(localhost)时连本地后端，在服务器部署时连服务器后端
+        let API_BASE = '';
+        if (location.hostname === '127.0.0.1' || location.hostname === 'localhost') {
+            API_BASE = 'http://127.0.0.1:8000/api'; // 本地强制连 8000
+        } else {
+            API_BASE = '/api'; // 服务器上自动适配
+        }
 
         const app = {
             token: localStorage.getItem('access_token'),
@@ -764,7 +773,17 @@
                 const url = id ? `${API_BASE}/articles/${id}/` : `${API_BASE}/articles/`;
                 const method = id ? 'PATCH' : 'POST';
                 const res = await this.req(url, method, payload);
-                if(res.ok) { alert('保存成功'); this.router('home'); }
+
+                // --- 核心修改 3：发布成功后直接跳转到文章详情页 ---
+                if(res.ok) {
+                    const data = await res.json();
+                    alert('保存成功');
+                    if (status === 'published') {
+                        this.openDetail(data.id);
+                    } else {
+                        this.router('home');
+                    }
+                }
                 else alert('保存失败');
             },
             async deleteCurrentPost() {
@@ -773,13 +792,26 @@
                 if(res.ok) { alert('已删除'); this.router('home'); }
             },
 
+            // --- 核心修改 2：改为从 API 获取真实标签 ---
             async loadOptions() {
+                // 加载分类
                 try {
                     const res = await fetch(`${API_BASE}/categories/`);
                     const data = await res.json();
                     document.getElementById('editor-category').innerHTML = (data.results||data).map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
                 } catch(e){}
-                document.getElementById('editor-tags').innerHTML = `<option value="1">Python</option><option value="2">Django</option><option value="3">Frontend</option>`;
+
+                // 加载标签 (修复点：不再写死)
+                try {
+                    const res = await fetch(`${API_BASE}/tags/`); // 假设后端已有这个接口
+                    const data = await res.json();
+                    const tags = data.results || data;
+                    document.getElementById('editor-tags').innerHTML = tags.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+                } catch(e) {
+                    // 如果后端还没写 Tags 接口，防止报错，这里给一个空提示
+                    console.log("加载标签失败，可能是接口未就绪");
+                    document.getElementById('editor-tags').innerHTML = '<option disabled>需后端提供/tags接口</option>';
+                }
             },
 
             editProfile() {
