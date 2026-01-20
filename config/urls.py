@@ -20,6 +20,7 @@ from django.urls import path
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import TemplateView
 from rest_framework.routers import DefaultRouter
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework_simplejwt.views import (
@@ -39,6 +40,7 @@ router.register(r'categories', CategoryViewSet, basename='对分类的操作')
 router.register(r'users',UserInfoViewSet,basename='个人信息')
 
 urlpatterns = [
+    path('', TemplateView.as_view(template_name='index.html')),
     path('admin/', admin.site.urls),
 
     # 1. 业务接口 /api/posts/
