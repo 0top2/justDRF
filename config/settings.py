@@ -90,7 +90,8 @@ DATABASES = {
         'NAME': 'my_blog_api',
         'USER': 'root',
         'PASSWORD': 'root',
-        'HOST': '127.0.0.1',
+        'HOST' : 'db',
+        # 'HOST': '127.0.0.1',
         'PORT': '3306',
     }
 }
@@ -172,13 +173,15 @@ CORS_ALLOW_ALL_ORIGINS = True
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6379/1',  # Redis 地址和数据库编号
+        # 'LOCATION': 'redis://127.0.0.1:6379/1',  # Redis 地址和数据库编号
+        'LOCATION': 'redis://redis:6379/1',  # <--- 重点改这里！
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         }
     }
 }
-REDIS_HOST = '127.0.0.1'
+# REDIS_HOST = '127.0.0.1'
+REDIS_HOST = 'redis' # <--- 重点改这里！
 REDIS_PORT = 6379
 REDIS_DB = 1  # 选择数据库（0——15）
 # {
@@ -189,3 +192,5 @@ REDIS_DB = 1  # 选择数据库（0——15）
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
+# 允许任何 IP 访问（生产环境建议填服务器具体 IP，但先填 * 跑通再说）
+ALLOWED_HOSTS = ["*"]
