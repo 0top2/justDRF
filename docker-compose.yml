@@ -14,7 +14,8 @@ services:
       - redis
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
-
+      - DB_HOST=db
+      - REDIS_HOST=redis
   # 2. MySQL 数据库服务
   db:
     image: mysql:8.0     # 直接下载官方 MySQL 镜像

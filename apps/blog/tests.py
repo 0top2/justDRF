@@ -1,12 +1,12 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
-from rest_framework.test import APITestCase
+from rest_framework.test import APITransactionTestCase
 from rest_framework import status
 
 User = get_user_model()
 
 
-class TestJustDRFAPI(APITestCase):
+class TestJustDRFAPI(APITransactionTestCase):
     """
     适配你项目的路由：
     - 登录拿 JWT：POST /api/token/login/

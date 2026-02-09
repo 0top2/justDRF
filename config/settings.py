@@ -91,7 +91,7 @@ DATABASES = {
         'NAME': 'my_blog_api',
         'USER': 'root',
         'PASSWORD': 'root',
-        'HOST' : 'db',
+        'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
         # 'HOST': '127.0.0.1',
         'PORT': '3306',
     }
@@ -169,22 +169,25 @@ AUTH_USER_MODEL = 'users.User'
 CORS_ALLOW_ALL_ORIGINS = True
 
 
+REDIS_HOST = os.environ.get('REDIS_HOST', '127.0.0.1')
 
+REDIS_PORT = 6379
+REDIS_DB = 1
 
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
         # 'LOCATION': 'redis://127.0.0.1:6379/1',  # Redis 地址和数据库编号
-        'LOCATION': 'redis://redis:6379/1',  # <--- 重点改这里！
+        'LOCATION': f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}', # <--- 重点改这里！
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         }
     }
 }
 # REDIS_HOST = '127.0.0.1'
-REDIS_HOST = 'redis' # <--- 重点改这里！
-REDIS_PORT = 6379
-REDIS_DB = 1  # 选择数据库（0——15）
+# REDIS_HOST = 'redis' # <--- 重点改这里！
+# REDIS_PORT = 6379
+# REDIS_DB = 1  # 选择数据库（0——15）
 # {
 #     "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc2NzE5Mjc0NiwiaWF0IjoxNzY2NTg3OTQ2LCJqdGkiOiI0M2VhMDQ1NmQyM2Y0ZWRjOGM5MzdkNGZlZjUyZThhMCIsInVzZXJfaWQiOiIxIn0.lBc3Kd1reDcuQG7Xa4D0DRS8U1UKKL16IHWwhK2oLqg",
 #     "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY2Njc0MzQ2LCJpYXQiOjE3NjY1ODc5NDYsImp0aSI6IjEzYmJiODIwYWYzYTQ2YWU4NGIxOGZjOGEwODgyODlkIiwidXNlcl9pZCI6IjEifQ.Uvr8LOalZghrcUCKF1oR0hoiTI0TSLnl_QJiIAxmJe0"
